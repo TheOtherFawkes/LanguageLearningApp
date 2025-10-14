@@ -284,10 +284,10 @@
 
         // Initialize with 20 starter words
         const starterWords = [
-            "hello,hallo", "goodbye,auf wiedersehen", "please,bitte", "thank you,danke",
-            "yes,ja", "no,nein", "water,wasser", "food,essen", "house,haus", "cat,katze",
-            "dog,hund", "car,auto", "tree,baum", "book,buch", "time,zeit",
-            "day,tag", "night,nacht", "friend,freund", "love,liebe", "work,arbeit"
+            "hello,hallo", "goodbye,auf Wiedersehen", "please,bitte", "thank you,danke",
+            "yes,ja", "no,nein", "water,das Wasser", "food,das Essen", "house,das Haus", "cat,die Katze",
+            "dog,der Hund", "car,das Auto", "tree,der Baum", "book,das Buch", "time,die Zeit",
+            "day,der Tag", "night,die Nacht", "(male)friend,der Freund", "love,die Liebe", "work,die Arbeit"
         ];
 
         function initializeApp() {
@@ -337,6 +337,15 @@
                     tier: w.tier,
                     consecutivePerfectSessions: w.consecutivePerfectSessions
                 });
+            }
+
+            // Shuffle each tier's available words
+            for (let tier = 1; tier <= 5; tier++) {
+                const arr = available[tier];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
             }
 
             const totalT1toT4 = available[1].length + available[2].length + available[3].length + available[4].length;
