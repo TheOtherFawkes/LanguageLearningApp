@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Learning</title>
+    <meta name="theme-color" content="#4A90E2">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .stats-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .tier {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .t1 { background: #e3f2fd; color: #1976d2; }
+        .t2 { background: #fff3e0; color: #f57c00; }
+        .t3 { background: #f3e5f5; color: #7b1fa2; }
+        .t4 { background: #e8f5e9; color: #388e3c; }
+        .t5 { background: #fce4ec; color: #c2185b; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #4A90E2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #357abd;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .card {
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .direction {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .word {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .answer {
+            font-size: 28px;
+            color: #4A90E2;
+            margin: 20px 0;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        .progress-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="menuScreen">
+            <h1>🌍 Language Learning</h1>
+            
+            <div class="stats">
+                <h3 style="margin-bottom: 15px;">Word Distribution</h3>
+                <div class="stats-row">
+                    <span>Tier 1 (Unused):</span>
+                    <span class="tier t1" id="totalT1">0</span>
+                </div>
+                <div class="stats-row">
+                    <span>Tier 2 (Learning):</span>
+                    <span class="tier t2" id="totalT2">0</span>
+                </div>
+                <div class="stats-row">
+                    <span>Tier 3 (Learned):</span>
+                    <span class="tier t3" id="totalT3">0</span>
+                </div>
+                <div class="stats-row">
+                    <span>Tier 4 (Memorized):</span>
+                    <span class="tier t4" id="totalT4">0</span>
+                </div>
+                <div class="stats-row">
+                    <span>Tier 5 (Perfect):</span>
+                    <span class="tier t5" id="totalT5">0</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="startSession()">Start Session</button>
+            <button class="btn-secondary" onclick="showImportWords()">Import Words</button>
+            <button class="btn-secondary" onclick="exportWordList()">Export Word List (.txt)</button>
+            <button class="btn-secondary" onclick="exportProgress()">Export Progress (JSON)</button>
+            <button class="btn-secondary" onclick="showImportProgress()">Import Progress (JSON)</button>
+        </div>
+
+        <div id="sessionScreen" class="hidden">
+            <h1>Session</h1>
+            
+            <div class="stats">
+                <div class="stats-row">
+                    <span>This session:</span>
+                    <span>
+                        <span class="tier t1">T1: <span id="sessionT1">0</span></span>
+                        <span class="tier t2">T2: <span id="sessionT2">0</span></span>
+                        <span class="tier t3">T3: <span id="sessionT3">0</span></span>
+                        <span class="tier t4">T4: <span id="sessionT4">0</span></span>
+                    </span>
+                </div>
+                <div class="stats-row">
+                    <span>Remaining:</span>
+                    <span id="remainingWords">0</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="direction" id="direction"></div>
+                <div class="word" id="question"></div>
+                <div class="answer hidden" id="answer"></div>
+            </div>
+
+            <button class="btn-primary" id="revealBtn" onclick="revealAnswer()">Reveal</button>
+            <div class="button-group hidden" id="answerBtns">
+                <button class="btn-success" onclick="markCorrect()">✓ Correct</button>
+                <button class="btn-danger" onclick="markWrong()">✗ Wrong</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal hidden"></div>
+
+    <script>
+        let words = [];
+        let sessionWords = [];
+        let currentCard = null;
+        let sessionTierCounts = {1: 0, 2: 0, 3: 0, 4: 0};
+
+        // Initialize with 20 starter words
+        const starterWords = [
+            "hello,hallo", "goodbye,auf wiedersehen", "please,bitte", "thank you,danke",
+            "yes,ja", "no,nein", "water,wasser", "food,essen", "house,haus", "cat,katze",
+            "dog,hund", "car,auto", "tree,baum", "book,buch", "time,zeit",
+            "day,tag", "night,nacht", "friend,freund", "love,liebe", "work,arbeit"
+        ];
+
+        function initializeApp() {
+            const saved = localStorage.getItem('languageAppData');
+            if (saved) {
+                words = JSON.parse(saved);
+            } else {
+                starterWords.forEach(line => {
+                    const parts = line.split(',');
+                    const english = parts[0].trim();
+                    const german = parts[1].trim();
+                    words.push({
+                        english: english,
+                        german: german,
+                        tier: 1,
+                        consecutivePerfectSessions: 0
+                    });
+                });
+                saveData();
+            }
+            updateStats();
+        }
+
+        function saveData() {
+            localStorage.setItem('languageAppData', JSON.stringify(words));
+        }
+
+        function updateStats() {
+            const counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+            for (let i = 0; i < words.length; i++) {
+                counts[words[i].tier]++;
+            }
+            document.getElementById('totalT1').textContent = counts[1];
+            document.getElementById('totalT2').textContent = counts[2];
+            document.getElementById('totalT3').textContent = counts[3];
+            document.getElementById('totalT4').textContent = counts[4];
+            document.getElementById('totalT5').textContent = counts[5];
+        }
+
+        function startSession() {
+            const available = {1: [], 2: [], 3: [], 4: [], 5: []};
+            for (let i = 0; i < words.length; i++) {
+                const w = words[i];
+                available[w.tier].push({
+                    english: w.english,
+                    german: w.german,
+                    tier: w.tier,
+                    consecutivePerfectSessions: w.consecutivePerfectSessions
+                });
+            }
+
+            const totalT1toT4 = available[1].length + available[2].length + available[3].length + available[4].length;
+            
+            if (totalT1toT4 < 10) {
+                const useTier5 = confirm('Not enough words available (only ' + totalT1toT4 + ' remaining). Continue using Mastered words (Tier 5) to fill the session, or Cancel to import more words?');
+                if (!useTier5) return;
+            }
+
+            sessionWords = [];
+            sessionTierCounts = {1: 0, 2: 0, 3: 0, 4: 0};
+
+            function addWords(targetTier, count, backfillOrder) {
+                let added = 0;
+                const tiers = [targetTier].concat(backfillOrder);
+                for (let t = 0; t < tiers.length; t++) {
+                    const tier = tiers[t];
+                    while (added < count && available[tier].length > 0) {
+                        const word = available[tier].shift();
+                        sessionWords.push({
+                            english: word.english,
+                            german: word.german,
+                            tier: word.tier,
+                            consecutivePerfectSessions: word.consecutivePerfectSessions,
+                            enToDeStreak: 0,
+                            deToEnStreak: 0,
+                            hadMistakeThisSession: false
+                        });
+                        sessionTierCounts[word.tier]++;
+                        added++;
+                    }
+                    if (added === count) break;
+                }
+            }
+
+            addWords(1, 1, [2, 3, 4, 5]);
+            addWords(2, 6, [1, 3, 4, 5]);
+            addWords(3, 2, [2, 1, 4, 5]);
+            addWords(4, 1, [3, 2, 1, 5]);
+
+            document.getElementById('sessionT1').textContent = sessionTierCounts[1];
+            document.getElementById('sessionT2').textContent = sessionTierCounts[2];
+            document.getElementById('sessionT3').textContent = sessionTierCounts[3];
+            document.getElementById('sessionT4').textContent = sessionTierCounts[4];
+
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('sessionScreen').classList.remove('hidden');
+
+            nextCard();
+        }
+
+        function nextCard() {
+            const remaining = [];
+            for (let i = 0; i < sessionWords.length; i++) {
+                const w = sessionWords[i];
+                if (w.enToDeStreak < 3 || w.deToEnStreak < 3) {
+                    remaining.push(w);
+                }
+            }
+            
+            document.getElementById('remainingWords').textContent = remaining.length;
+
+            if (remaining.length === 0) {
+                endSession();
+                return;
+            }
+
+            const word = remaining[Math.floor(Math.random() * remaining.length)];
+            const needsEnToDe = word.enToDeStreak < 3;
+            const needsDeToEn = word.deToEnStreak < 3;
+            
+            let direction;
+            if (needsEnToDe && needsDeToEn) {
+                direction = Math.random() < 0.5 ? 'enToDe' : 'deToEn';
+            } else if (needsEnToDe) {
+                direction = 'enToDe';
+            } else {
+                direction = 'deToEn';
+            }
+
+            currentCard = { word: word, direction: direction };
+
+            if (direction === 'enToDe') {
+                document.getElementById('direction').textContent = 'EN → DE';
+                document.getElementById('question').textContent = word.english;
+                document.getElementById('answer').textContent = word.german;
+            } else {
+                document.getElementById('direction').textContent = 'DE → EN';
+                document.getElementById('question').textContent = word.german;
+                document.getElementById('answer').textContent = word.english;
+            }
+
+            document.getElementById('answer').classList.add('hidden');
+            document.getElementById('revealBtn').classList.remove('hidden');
+            document.getElementById('answerBtns').classList.add('hidden');
+        }
+
+        function revealAnswer() {
+            document.getElementById('answer').classList.remove('hidden');
+            document.getElementById('revealBtn').classList.add('hidden');
+            document.getElementById('answerBtns').classList.remove('hidden');
+        }
+
+        function markCorrect() {
+            const word = currentCard.word;
+            const direction = currentCard.direction;
+            if (direction === 'enToDe') {
+                word.enToDeStreak++;
+            } else {
+                word.deToEnStreak++;
+            }
+            nextCard();
+        }
+
+        function markWrong() {
+            const word = currentCard.word;
+            const direction = currentCard.direction;
+            if (direction === 'enToDe') {
+                word.enToDeStreak = 0;
+            } else {
+                word.deToEnStreak = 0;
+            }
+            word.hadMistakeThisSession = true;
+            nextCard();
+        }
+
+        function endSession() {
+            for (let s = 0; s < sessionWords.length; s++) {
+                const sessionWord = sessionWords[s];
+                let word = null;
+                for (let w = 0; w < words.length; w++) {
+                    if (words[w].english === sessionWord.english) {
+                        word = words[w];
+                        break;
+                    }
+                }
+                
+                const perfect = !sessionWord.hadMistakeThisSession && 
+                               sessionWord.enToDeStreak === 3 && 
+                               sessionWord.deToEnStreak === 3;
+
+                if (sessionWord.hadMistakeThisSession && (word.tier === 3 || word.tier === 4)) {
+                    word.tier = 2;
+                    word.consecutivePerfectSessions = 0;
+                } else if (perfect) {
+                    if (word.tier === 1) {
+                        word.tier = 3;
+                        word.consecutivePerfectSessions = 1;
+                    } else if (word.tier === 2) {
+                        word.tier = 3;
+                        word.consecutivePerfectSessions = 1;
+                    } else if (word.tier === 3) {
+                        word.consecutivePerfectSessions++;
+                        if (word.consecutivePerfectSessions >= 3) {
+                            word.tier = 4;
+                            word.consecutivePerfectSessions = 1;
+                        }
+                    } else if (word.tier === 4) {
+                        word.consecutivePerfectSessions++;
+                        if (word.consecutivePerfectSessions >= 3) {
+                            word.tier = 5;
+                            word.consecutivePerfectSessions = 0;
+                        }
+                    }
+                } else if (word.tier === 1) {
+                    word.tier = 2;
+                    word.consecutivePerfectSessions = 0;
+                }
+            }
+
+            saveData();
+            document.getElementById('sessionScreen').classList.add('hidden');
+            document.getElementById('menuScreen').classList.remove('hidden');
+            updateStats();
+        }
+
+        function showImportWords() {
+            showModal('<h2>Import Words</h2><p>Paste word list (format: english,german per line)</p><textarea id="importWordsText"></textarea><div class="button-group"><button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" onclick="importWords()">Import</button></div>');
+        }
+
+        function importWords() {
+            const text = document.getElementById('importWordsText').value;
+            const lines = text.split('\n');
+            const duplicates = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const parts = line.split(',');
+                if (parts.length < 2) continue;
+                
+                const english = parts[0].trim();
+                const german = parts[1].trim();
+                if (!english || !german) continue;
+
+                let exists = false;
+                for (let w = 0; w < words.length; w++) {
+                    if (words[w].english.toLowerCase() === english.toLowerCase()) {
+                        exists = true;
+                        break;
+                    }
+                }
+                
+                if (exists) {
+                    duplicates.push(english);
+                } else {
+                    words.push({
+                        english: english,
+                        german: german,
+                        tier: 1,
+                        consecutivePerfectSessions: 0
+                    });
+                }
+            }
+
+            saveData();
+            updateStats();
+            closeModal();
+
+            if (duplicates.length > 0) {
+                alert('The following words were already in the list, and have not been added again:\n\n' + duplicates.join(', '));
+            }
+        }
+
+        function exportWordList() {
+            let text = '';
+            for (let i = 0; i < words.length; i++) {
+                text += words[i].english + ',' + words[i].german + '\n';
+            }
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wordlist.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportProgress() {
+            const json = JSON.stringify(words, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'progress.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function showImportProgress() {
+            showModal('<h2>Import Progress</h2><p>Upload your progress JSON file:</p><input type="file" id="progressFile" accept=".json"><div class="progress-info"><strong>Choose import mode:</strong><br><strong>Erase & Replace:</strong> Imported words use imported progress. All other words reset to Tier 1.<br><strong>Add/Merge:</strong> Imported words use imported progress. All other words keep current progress.</div><div class="button-group"><button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-danger" onclick="importProgress(\'erase\')">Erase & Replace</button><button class="btn-primary" onclick="importProgress(\'merge\')">Add/Merge</button></div>');
+        }
+
+        function importProgress(mode) {
+            const fileInput = document.getElementById('progressFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    if (mode === 'erase') {
+                        for (let w = 0; w < words.length; w++) {
+                            let found = false;
+                            for (let i = 0; i < imported.length; i++) {
+                                if (imported[i].english === words[w].english) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                words[w].tier = 1;
+                                words[w].consecutivePerfectSessions = 0;
+                            }
+                        }
+                    }
+
+                    for (let i = 0; i < imported.length; i++) {
+                        const imp = imported[i];
+                        let existing = null;
+                        for (let w = 0; w < words.length; w++) {
+                            if (words[w].english === imp.english) {
+                                existing = words[w];
+                                break;
+                            }
+                        }
+                        
+                        if (existing) {
+                            existing.tier = imp.tier;
+                            existing.consecutivePerfectSessions = imp.consecutivePerfectSessions;
+                            existing.german = imp.german;
+                        } else {
+                            words.push(imp);
+                        }
+                    }
+
+                    saveData();
+                    updateStats();
+                    closeModal();
+                    alert('Progress imported successfully!');
+                } catch (err) {
+                    alert('Error importing file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function showModal(content) {
+            const modal = document.getElementById('modal');
+            modal.innerHTML = '<div class="modal-content">' + content + '</div>';
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+window.startSession = startSession;
+window.showImportWords = showImportWords;
+window.exportWordList = exportWordList;
+window.exportProgress = exportProgress;
+window.showImportProgress = showImportProgress;
+window.revealAnswer = revealAnswer;
+window.markCorrect = markCorrect;
+window.markWrong = markWrong;
+window.closeModal = closeModal;
+window.importWords = importWords;
+window.importProgress = importProgress;
+
+
+        initializeApp();
+    </script>
+</body>
+</html>
