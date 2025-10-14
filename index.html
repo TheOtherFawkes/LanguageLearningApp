@@ -155,7 +155,8 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
+            pointer-events: none;
         }
 
         .modal {
@@ -656,20 +657,22 @@
         }
 
         function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
+            const modal = document.getElementById('modal');
+            modal.classList.add('hidden');
+            modal.onclick = null;
         }
-window.startSession = startSession;
-window.showImportWords = showImportWords;
-window.exportWordList = exportWordList;
-window.exportProgress = exportProgress;
-window.showImportProgress = showImportProgress;
-window.revealAnswer = revealAnswer;
-window.markCorrect = markCorrect;
-window.markWrong = markWrong;
-window.closeModal = closeModal;
-window.importWords = importWords;
-window.importProgress = importProgress;
 
+        window.startSession = startSession;
+        window.showImportWords = showImportWords;
+        window.exportWordList = exportWordList;
+        window.exportProgress = exportProgress;
+        window.showImportProgress = showImportProgress;
+        window.revealAnswer = revealAnswer;
+        window.markCorrect = markCorrect;
+        window.markWrong = markWrong;
+        window.closeModal = closeModal;
+        window.importWords = importWords;
+        window.importProgress = importProgress;
 
         initializeApp();
     </script>
