@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Language Learning</title>
+    <title>FastFlashCards</title>
     <meta name="theme-color" content="#4A90E2">
     <style>
         * {
@@ -208,7 +208,7 @@
 <body>
     <div class="container">
         <div id="menuScreen">
-            <h1>🌍 Language Learning</h1>
+            <h1>🌍 Fast Flash Cards</h1>
             
             <div class="stats">
                 <h3 style="margin-bottom: 15px;">Word Distribution</h3>
@@ -233,12 +233,26 @@
                     <span class="tier t5" id="totalT5">0</span>
                 </div>
             </div>
-
+            
             <button class="btn-primary" onclick="startSession()">Start Session</button>
+<div style="margin-bottom: 20px;">
+    <label>
+        Left language (Word):
+        <input type="text" id="leftLang" placeholder="English">
+    </label>
+    <br><br>
+    <label>
+        Right language (Translation):
+        <input type="text" id="rightLang" placeholder="German">
+    </label>
+</div>
+            
             <button class="btn-secondary" onclick="showImportWords()">Import Words</button>
             <button class="btn-secondary" onclick="exportWordList()">Export Word List (.txt)</button>
             <button class="btn-secondary" onclick="exportProgress()">Export Progress (JSON)</button>
             <button class="btn-secondary" onclick="showImportProgress()">Import Progress (JSON)</button>
+            <button class="btn-danger" onclick="resetWordList()">Reset Word List</button>
+
         </div>
 
         <div id="sessionScreen" class="hidden">
@@ -281,6 +295,24 @@
         let sessionWords = [];
         let currentCard = null;
         let sessionTierCounts = {1: 0, 2: 0, 3: 0, 4: 0};
+        let leftLanguage, rightLanguage;
+
+function loadLanguageLabels() {
+    const leftInput = document.getElementById('leftLang');
+    const rightInput = document.getElementById('rightLang');
+
+    leftLanguage = leftInput.value || "English";
+    rightLanguage = rightInput.value || "German";
+}
+
+// Update variables whenever user types
+document.getElementById('leftLang').addEventListener('input', loadLanguageLabels);
+document.getElementById('rightLang').addEventListener('input', loadLanguageLabels);
+
+// Call once at page load to initialize from whatever is in the fields
+loadLanguageLabels();
+
+
 
         // Initialize with 20 starter words
         const starterWords = [
@@ -311,6 +343,15 @@
             updateStats();
         }
 
+document.getElementById('leftLang').addEventListener('input', (e) => {
+    leftLanguage = e.target.value || "Word";
+});
+
+document.getElementById('rightLang').addEventListener('input', (e) => {
+    rightLanguage = e.target.value || "Translation";
+});
+
+
         function saveData() {
             localStorage.setItem('languageAppData', JSON.stringify(words));
         }
@@ -326,6 +367,20 @@
             document.getElementById('totalT4').textContent = counts[4];
             document.getElementById('totalT5').textContent = counts[5];
         }
+
+
+
+        function resetWordList() {
+    if (confirm("Are you sure you want to delete all words and reset progress?")) {
+        localStorage.removeItem('languageAppData'); // clear saved words
+        words = []; // clear in-memory array
+        updateStats(); // refresh stats to zero
+        alert("All words (including starter words) have been deleted. You can now import or paste a new list.");
+    }
+}
+
+
+
 
         function startSession() {
             const available = {1: [], 2: [], 3: [], 4: [], 5: []};
@@ -383,7 +438,7 @@
 
             addWords(1, 1, [2, 3, 4, 5]);
             addWords(2, 6, [1, 3, 4, 5]);
-            addWords(3, 2, [2, 1, 4, 5]);
+            addWords(3, 4, [2, 1, 4, 5]);
             addWords(4, 1, [3, 2, 1, 5]);
 
             document.getElementById('sessionT1').textContent = sessionTierCounts[1];
@@ -429,14 +484,15 @@
             currentCard = { word: word, direction: direction };
 
             if (direction === 'enToDe') {
-                document.getElementById('direction').textContent = 'EN → DE';
-                document.getElementById('question').textContent = word.english;
-                document.getElementById('answer').textContent = word.german;
-            } else {
-                document.getElementById('direction').textContent = 'DE → EN';
-                document.getElementById('question').textContent = word.german;
-                document.getElementById('answer').textContent = word.english;
-            }
+    document.getElementById('direction').textContent = leftLanguage + " → " + rightLanguage;
+    document.getElementById('question').textContent = word.english;
+    document.getElementById('answer').textContent = word.german;
+} else {
+    document.getElementById('direction').textContent = rightLanguage + " → " + leftLanguage;
+    document.getElementById('question').textContent = word.german;
+    document.getElementById('answer').textContent = word.english;
+}
+
 
             document.getElementById('answer').classList.add('hidden');
             document.getElementById('revealBtn').classList.remove('hidden');
@@ -523,7 +579,7 @@
         }
 
         function showImportWords() {
-            showModal('<h2>Import Words</h2><p>Paste word list (format: english,german per line)</p><textarea id="importWordsText"></textarea><div class="button-group"><button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" onclick="importWords()">Import</button></div>');
+            showModal('<h2>Import Words</h2><p>Paste word list, one pair per line. (Format: english,german)</p><textarea id="importWordsText"></textarea><div class="button-group"><button class="btn-secondary" onclick="closeModal()">Cancel</button><button class="btn-primary" onclick="importWords()">Import</button></div>');
         }
 
         function importWords() {
