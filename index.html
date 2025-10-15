@@ -12,17 +12,6 @@
             box-sizing: border-box;
         }
 
-        .button-row {
-    display: flex;       /* puts buttons side by side */
-    gap: 10px;           /* space between buttons */
-    margin-bottom: 10px; /* space below the row */
-}
-
-.button-row button {
-    flex: 1;             /* makes buttons equal width */
-}
-
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -256,26 +245,15 @@
         Right language (Translation):
         <input type="text" id="rightLang" placeholder="German">
     </label>
-<!-- Words Row -->
-<div class="button-row">
-    <button class="btn-secondary" onclick="showImportWords()">Import Words</button>
-    <button class="btn-secondary" onclick="exportWordList()">Export Word List (.txt)</button>
 </div>
+            
+            <button class="btn-secondary" onclick="showImportWords()">Import Words</button>
+            <button class="btn-secondary" onclick="exportWordList()">Export Word List (.txt)</button>
+            <button class="btn-secondary" onclick="exportProgress()">Export Progress (JSON)</button>
+            <button class="btn-secondary" onclick="showImportProgress()">Import Progress (JSON)</button>
+            <button class="btn-danger" onclick="resetWordList()">Reset Word List</button>
 
-<!-- Progress Row -->
-<div class="button-row">
-    <button class="btn-secondary" onclick="showImportProgress()">Import Progress (JSON)</button>
-    <button class="btn-secondary" onclick="exportProgress()">Export Progress (JSON)</button>
-</div>
-
-<!-- Edit Tiers Row -->
-<div class="button-row">
-    <button class="btn-secondary" onclick="openTierEditor()">Edit Tiers / Words</button>
-</div>
-
-<!-- Reset button (its own line) -->
-<button class="btn-danger" onclick="resetWordList()">Erase All Words & Progress</button>
-
+        </div>
 
         <div id="sessionScreen" class="hidden">
             <h1>Session</h1>
@@ -763,153 +741,5 @@ document.getElementById('rightLang').addEventListener('input', (e) => {
 
         initializeApp();
     </script>
-
-<!-- Tier Editor Modal -->
-<div id="tierEditorModal" class="modal hidden">
-    <div class="modal-content" style="display: flex; gap: 10px; max-width: 1200px; overflow-x: auto;">
-        <!-- Tier Columns 1–5 -->
-        <div class="tier-column t1" style="flex: 1; padding: 10px; border-radius: 10px;">
-            <h3>Tier 1</h3>
-            <div class="word-list" id="tier1List" style="max-height: 400px; overflow-y: auto;"></div>
-        </div>
-        <div class="tier-column t2" style="flex: 1; padding: 10px; border-radius: 10px;">
-            <h3>Tier 2</h3>
-            <div class="word-list" id="tier2List" style="max-height: 400px; overflow-y: auto;"></div>
-        </div>
-        <div class="tier-column t3" style="flex: 1; padding: 10px; border-radius: 10px;">
-            <h3>Tier 3</h3>
-            <div class="word-list" id="tier3List" style="max-height: 400px; overflow-y: auto;"></div>
-        </div>
-        <div class="tier-column t4" style="flex: 1; padding: 10px; border-radius: 10px;">
-            <h3>Tier 4</h3>
-            <div class="word-list" id="tier4List" style="max-height: 400px; overflow-y: auto;"></div>
-        </div>
-        <div class="tier-column t5" style="flex: 1; padding: 10px; border-radius: 10px;">
-            <h3>Tier 5</h3>
-            <div class="word-list" id="tier5List" style="max-height: 400px; overflow-y: auto;"></div>
-        </div>
-    </div>
-    <div style="margin-top: 10px; text-align: center;">
-        <button class="btn-secondary" onclick="closeTierEditor()">Close</button>
-    </div>
-</div>
-
-<script>
-// Open the modal
-function openTierEditor() {
-    document.getElementById('tierEditorModal').classList.remove('hidden');
-    renderTierColumns();
-}
-
-// Close modal
-function closeTierEditor() {
-    document.getElementById('tierEditorModal').classList.add('hidden');
-}
-
-// Render all 5 Tier columns
-function renderTierColumns() {
-    for (let t = 1; t <= 5; t++) {
-        const listEl = document.getElementById('tier' + t + 'List');
-        listEl.innerHTML = '';
-        listEl.style.backgroundColor = getTierColor(t); // optional: color code columns
-
-        // Filter and sort words for this tier
-        const tierWords = words.filter(w => w.tier === t)
-                               .sort((a,b) => (a.english > b.english ? 1 : -1));
-
-        // Render each word
-        tierWords.forEach(wordObj => {
-            const div = document.createElement('div');
-            div.style.display = 'flex';
-            div.style.alignItems = 'center';
-            div.style.padding = '2px 5px';
-            div.style.cursor = 'pointer';
-            div.setAttribute('draggable', 'true');
-
-            // DELETE BUTTON on LEFT
-            const delBtn = document.createElement('span');
-            delBtn.textContent = '✖';
-            delBtn.style.color = '#900';
-            delBtn.style.marginRight = '5px';
-            delBtn.style.cursor = 'pointer';
-            delBtn.onclick = (e) => {
-                e.stopPropagation();
-                const index = words.indexOf(wordObj);
-                if (index > -1) words.splice(index, 1);
-                saveData();
-                renderTierColumns();
-                updateStats();
-            };
-            div.appendChild(delBtn);
-
-            // WORD TEXT
-            const wordText = document.createElement('span');
-            wordText.textContent = wordObj.english + ',' + wordObj.german;
-            wordText.style.flex = '1';
-            div.appendChild(wordText);
-
-            // Double-click to edit
-            div.ondblclick = () => {
-                const newText = prompt('Edit word (format: word,translation):', div.textContent.replace('✖','').trim());
-                if (newText) {
-                    const parts = newText.split(',');
-                    if (parts.length >= 2) {
-                        wordObj.english = parts[0].trim();
-                        wordObj.german = parts[1].trim();
-                        saveData();
-                        renderTierColumns();
-                    } else {
-                        alert('Please keep format: word,translation');
-                    }
-                }
-            };
-
-            // Drag-and-drop
-            div.ondragstart = (e) => {
-                e.dataTransfer.setData('text/plain', words.indexOf(wordObj));
-            };
-
-            listEl.appendChild(div);
-        });
-
-        // Make the column itself a drop target (works even if empty)
-        listEl.ondragover = (e) => {
-            e.preventDefault();
-            listEl.style.backgroundColor = '#e0e0e0';
-        };
-        listEl.ondragleave = (e) => {
-            listEl.style.backgroundColor = getTierColor(t); // restore column color
-        };
-        listEl.ondrop = (e) => {
-            e.preventDefault();
-            const idx = parseInt(e.dataTransfer.getData('text/plain'));
-            const wordObj = words[idx];
-            wordObj.tier = t;  // move word to this tier
-            saveData();
-            renderTierColumns();
-            updateStats();
-        };
-
-        // ensure minimum height so empty columns can accept drops
-        listEl.style.minHeight = '150px';
-    }
-}
-
-// Helper to color code tiers
-function getTierColor(tier) {
-    switch(tier) {
-        case 1: return '#e3f2fd'; // light blue
-        case 2: return '#fff3e0'; // light orange
-        case 3: return '#f3e5f5'; // light purple
-        case 4: return '#e8f5e9'; // light green
-        case 5: return '#fce4ec'; // light pink
-        default: return '#f0f0f0';
-    }
-}
-
-
-</script>
-
-
 </body>
 </html>
