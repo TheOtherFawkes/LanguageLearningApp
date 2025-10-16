@@ -13,13 +13,13 @@
         }
 
         .button-row {
-            display: flex;       /* puts buttons side by side */
-            gap: 10px;           /* space between buttons */
-            margin-bottom: 10px; /* space below the row */
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
         .button-row button {
-            flex: 1;             /* makes buttons equal width */
+            flex: 1;
         }
 
         body {
@@ -218,7 +218,7 @@
 <body>
     <div class="container">
         <div id="menuScreen">
-            <h1>🌍 Fast Flash Cards</h1>
+            <h1>🌟 Fast Flash Cards</h1>
             
             <div class="stats">
                 <h3 style="margin-bottom: 15px;">Word Distribution</h3>
@@ -257,24 +257,20 @@
                 </label>
             </div>
 
-            <!-- Words Row -->
             <div class="button-row">
                 <button class="btn-secondary" onclick="showImportWords()">Import Words</button>
                 <button class="btn-secondary" onclick="exportWordList()">Export Word List (.txt)</button>
             </div>
 
-            <!-- Progress Row -->
             <div class="button-row">
                 <button class="btn-secondary" onclick="showImportProgress()">Import Progress (JSON)</button>
                 <button class="btn-secondary" onclick="exportProgress()">Export Progress (JSON)</button>
             </div>
 
-            <!-- Edit Tiers Row -->
             <div class="button-row">
                 <button class="btn-secondary" onclick="openTierEditor()">Edit Tiers / Words</button>
             </div>
 
-            <!-- Reset button (its own line) -->
             <button class="btn-danger" onclick="resetWordList()">Erase All Words & Progress</button>
         </div>
 
@@ -299,24 +295,23 @@
 
             <div class="card">
                 <div class="direction" id="direction"></div>
+                <div style="font-size: 18px; color: #4A90E2; font-weight: bold; margin-bottom: 10px;" id="streakCounter"></div>
                 <div class="word" id="question"></div>
                 <div class="answer hidden" id="answer"></div>
             </div>
 
-            <button class="btn-primary" id="revealBtn" onclick="revealAnswer()">Reveal</button>
+            <button class="btn-primary" id="revealBtn" onclick="revealAnswer()">Reveal<br>↓</button>
             <div class="button-group hidden" id="answerBtns">
-                <button class="btn-success" onclick="markCorrect()">✓ Correct</button>
-                <button class="btn-danger" onclick="markWrong()">✗ Wrong</button>
+                <button class="btn-success" onclick="markCorrect()">← ✓ Correct</button>
+                <button class="btn-danger" onclick="markWrong()">✗ Wrong →</button>
             </div>
         </div>
     </div>
 
     <div id="modal" class="modal hidden"></div>
     
-    <!-- Tier Editor Modal -->
     <div id="tierEditorModal" class="modal hidden">
         <div class="modal-content" style="display: flex; gap: 10px; max-width: 1200px; overflow-x: auto;">
-            <!-- Tier Columns 1-5 -->
             <div class="tier-column t1" style="flex: 1; padding: 10px; border-radius: 10px;">
                 <h3>Tier 1</h3>
                 <div class="word-list" id="tier1List" style="max-height: 400px; overflow-y: auto;"></div>
@@ -353,19 +348,14 @@
         function loadLanguageLabels() {
             const leftInput = document.getElementById('leftLang');
             const rightInput = document.getElementById('rightLang');
-
             leftLanguage = leftInput.value || "English";
             rightLanguage = rightInput.value || "German";
         }
 
-        // Update variables whenever user types
         document.getElementById('leftLang').addEventListener('input', loadLanguageLabels);
         document.getElementById('rightLang').addEventListener('input', loadLanguageLabels);
-
-        // Call once at page load to initialize from whatever is in the fields
         loadLanguageLabels();
 
-        // Initialize with 20 starter words
         const starterWords = [
             "hello,hallo", "goodbye,auf Wiedersehen", "please,bitte", "thank you,danke",
             "yes,ja", "no,nein", "water,das Wasser", "food,das Essen", "house,das Haus", "cat,die Katze",
@@ -374,17 +364,15 @@
         ];
 
         function initializeApp() {
-            const saved = localStorage.getItem('languageAppData');
+            const saved = JSON.parse(localStorage.getItem('languageAppData') || 'null');
             if (saved) {
-                words = JSON.parse(saved);
+                words = saved;
             } else {
                 starterWords.forEach(line => {
                     const parts = line.split(',');
-                    const english = parts[0].trim();
-                    const german = parts[1].trim();
                     words.push({
-                        english: english,
-                        german: german,
+                        english: parts[0].trim(),
+                        german: parts[1].trim(),
                         tier: 1,
                         consecutivePerfectSessions: 0
                     });
@@ -394,23 +382,13 @@
             updateStats();
         }
 
-        document.getElementById('leftLang').addEventListener('input', (e) => {
-            leftLanguage = e.target.value || "Word";
-        });
-
-        document.getElementById('rightLang').addEventListener('input', (e) => {
-            rightLanguage = e.target.value || "Translation";
-        });
-
         function saveData() {
             localStorage.setItem('languageAppData', JSON.stringify(words));
         }
 
         function updateStats() {
             const counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
-            for (let i = 0; i < words.length; i++) {
-                counts[words[i].tier]++;
-            }
+            words.forEach(w => counts[w.tier]++);
             document.getElementById('totalT1').textContent = counts[1];
             document.getElementById('totalT2').textContent = counts[2];
             document.getElementById('totalT3').textContent = counts[3];
@@ -420,26 +398,17 @@
 
         function resetWordList() {
             if (confirm("Are you sure you want to delete all words and reset progress? This will erase everything including the default starter words.")) {
-                words = []; // clear in-memory array
-                saveData(); // save the empty array to localStorage
-                updateStats(); // refresh stats to zero
+                words = [];
+                saveData();
+                updateStats();
                 alert("All words have been deleted. Import new words to get started.");
             }
         }
 
         function startSession() {
             const available = {1: [], 2: [], 3: [], 4: [], 5: []};
-            for (let i = 0; i < words.length; i++) {
-                const w = words[i];
-                available[w.tier].push({
-                    english: w.english,
-                    german: w.german,
-                    tier: w.tier,
-                    consecutivePerfectSessions: w.consecutivePerfectSessions
-                });
-            }
+            words.forEach(w => available[w.tier].push({...w}));
 
-            // Shuffle each tier's available words
             for (let tier = 1; tier <= 5; tier++) {
                 const arr = available[tier];
                 for (let i = arr.length - 1; i > 0; i--) {
@@ -461,15 +430,11 @@
             function addWords(targetTier, count, backfillOrder) {
                 let added = 0;
                 const tiers = [targetTier].concat(backfillOrder);
-                for (let t = 0; t < tiers.length; t++) {
-                    const tier = tiers[t];
+                for (let tier of tiers) {
                     while (added < count && available[tier].length > 0) {
                         const word = available[tier].shift();
                         sessionWords.push({
-                            english: word.english,
-                            german: word.german,
-                            tier: word.tier,
-                            consecutivePerfectSessions: word.consecutivePerfectSessions,
+                            ...word,
                             enToDeStreak: 0,
                             deToEnStreak: 0,
                             hadMistakeThisSession: false
@@ -498,15 +463,11 @@
         }
 
         function nextCard() {
-            const remaining = [];
-            for (let i = 0; i < sessionWords.length; i++) {
-                const w = sessionWords[i];
-                if (w.enToDeStreak < 3 || w.deToEnStreak < 3) {
-                    remaining.push(w);
-                }
-            }
+            const remaining = sessionWords.filter(w => w.enToDeStreak < 3 || w.deToEnStreak < 3);
             
-            document.getElementById('remainingWords').textContent = remaining.length;
+            const remainingEnToDe = sessionWords.filter(w => w.enToDeStreak < 3).length;
+            const remainingDeToEn = sessionWords.filter(w => w.deToEnStreak < 3).length;
+            document.getElementById('remainingWords').textContent = remainingEnToDe + '/' + remainingDeToEn;
 
             if (remaining.length === 0) {
                 endSession();
@@ -526,14 +487,16 @@
                 direction = 'deToEn';
             }
 
-            currentCard = { word: word, direction: direction };
+            currentCard = { word, direction };
 
             if (direction === 'enToDe') {
                 document.getElementById('direction').textContent = leftLanguage + " → " + rightLanguage;
+                document.getElementById('streakCounter').textContent = word.enToDeStreak + "/3";
                 document.getElementById('question').textContent = word.english;
                 document.getElementById('answer').textContent = word.german;
             } else {
                 document.getElementById('direction').textContent = rightLanguage + " → " + leftLanguage;
+                document.getElementById('streakCounter').textContent = word.deToEnStreak + "/3";
                 document.getElementById('question').textContent = word.german;
                 document.getElementById('answer').textContent = word.english;
             }
@@ -551,8 +514,7 @@
 
         function markCorrect() {
             const word = currentCard.word;
-            const direction = currentCard.direction;
-            if (direction === 'enToDe') {
+            if (currentCard.direction === 'enToDe') {
                 word.enToDeStreak++;
             } else {
                 word.deToEnStreak++;
@@ -562,8 +524,7 @@
 
         function markWrong() {
             const word = currentCard.word;
-            const direction = currentCard.direction;
-            if (direction === 'enToDe') {
+            if (currentCard.direction === 'enToDe') {
                 word.enToDeStreak = 0;
             } else {
                 word.deToEnStreak = 0;
@@ -573,15 +534,9 @@
         }
 
         function endSession() {
-            for (let s = 0; s < sessionWords.length; s++) {
-                const sessionWord = sessionWords[s];
-                let word = null;
-                for (let w = 0; w < words.length; w++) {
-                    if (words[w].english === sessionWord.english) {
-                        word = words[w];
-                        break;
-                    }
-                }
+            sessionWords.forEach(sessionWord => {
+                const word = words.find(w => w.english === sessionWord.english);
+                if (!word) return;
                 
                 const perfect = !sessionWord.hadMistakeThisSession && 
                                 sessionWord.enToDeStreak === 3 && 
@@ -595,8 +550,11 @@
                         word.tier = 3;
                         word.consecutivePerfectSessions = 1;
                     } else if (word.tier === 2) {
-                        word.tier = 3;
-                        word.consecutivePerfectSessions = 1;
+                        word.consecutivePerfectSessions++;
+                        if (word.consecutivePerfectSessions >= 2) {
+                            word.tier = 3;
+                            word.consecutivePerfectSessions = 1;
+                        }
                     } else if (word.tier === 3) {
                         word.consecutivePerfectSessions++;
                         if (word.consecutivePerfectSessions >= 3) {
@@ -614,7 +572,7 @@
                     word.tier = 2;
                     word.consecutivePerfectSessions = 0;
                 }
-            }
+            });
 
             saveData();
             document.getElementById('sessionScreen').classList.add('hidden');
@@ -631,36 +589,30 @@
             const lines = text.split('\n');
             const duplicates = [];
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
                 
                 const parts = line.split(',');
-                if (parts.length < 2) continue;
+                if (parts.length < 2) return;
                 
                 const english = parts[0].trim();
                 const german = parts[1].trim();
-                if (!english || !german) continue;
+                if (!english || !german) return;
 
-                let exists = false;
-                for (let w = 0; w < words.length; w++) {
-                    if (words[w].english.toLowerCase() === english.toLowerCase()) {
-                        exists = true;
-                        break;
-                    }
-                }
+                const exists = words.some(w => w.english.toLowerCase() === english.toLowerCase());
                 
                 if (exists) {
                     duplicates.push(english);
                 } else {
                     words.push({
-                        english: english,
-                        german: german,
+                        english,
+                        german,
                         tier: 1,
                         consecutivePerfectSessions: 0
                     });
                 }
-            }
+            });
 
             saveData();
             updateStats();
@@ -672,10 +624,7 @@
         }
 
         function exportWordList() {
-            let text = '';
-            for (let i = 0; i < words.length; i++) {
-                text += words[i].english + ',' + words[i].german + '\n';
-            }
+            const text = words.map(w => w.english + ',' + w.german).join('\n');
             const blob = new Blob([text], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -690,8 +639,13 @@
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            
+            const left = leftLanguage || 'English';
+            const right = rightLanguage || 'German';
+            const today = new Date().toISOString().split('T')[0];
+            
             a.href = url;
-            a.download = 'progress.json';
+            a.download = `FastFlashCards(${left})(${right})(${today}).json`;
             a.click();
             URL.revokeObjectURL(url);
         }
@@ -714,31 +668,16 @@
                     const imported = JSON.parse(e.target.result);
                     
                     if (mode === 'erase') {
-                        for (let w = 0; w < words.length; w++) {
-                            let found = false;
-                            for (let i = 0; i < imported.length; i++) {
-                                if (imported[i].english === words[w].english) {
-                                    found = true;
-                                    break;
-                                }
+                        words.forEach(w => {
+                            if (!imported.some(imp => imp.english === w.english)) {
+                                w.tier = 1;
+                                w.consecutivePerfectSessions = 0;
                             }
-                            if (!found) {
-                                words[w].tier = 1;
-                                words[w].consecutivePerfectSessions = 0;
-                            }
-                        }
+                        });
                     }
 
-                    for (let i = 0; i < imported.length; i++) {
-                        const imp = imported[i];
-                        let existing = null;
-                        for (let w = 0; w < words.length; w++) {
-                            if (words[w].english === imp.english) {
-                                existing = words[w];
-                                break;
-                            }
-                        }
-                        
+                    imported.forEach(imp => {
+                        const existing = words.find(w => w.english === imp.english);
                         if (existing) {
                             existing.tier = imp.tier;
                             existing.consecutivePerfectSessions = imp.consecutivePerfectSessions;
@@ -746,7 +685,7 @@
                         } else {
                             words.push(imp);
                         }
-                    }
+                    });
 
                     saveData();
                     updateStats();
@@ -766,35 +705,28 @@
         }
 
         function closeModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.add('hidden');
-            modal.onclick = null;
+            document.getElementById('modal').classList.add('hidden');
         }
 
-        // Open the tier editor modal
         function openTierEditor() {
             document.getElementById('tierEditorModal').classList.remove('hidden');
             renderTierColumns();
         }
 
-        // Close tier editor modal
         function closeTierEditor() {
             document.getElementById('tierEditorModal').classList.add('hidden');
         }
 
-        // Render all 5 Tier columns
         function renderTierColumns() {
             for (let t = 1; t <= 5; t++) {
                 const columnEl = document.querySelector('.tier-column.t' + t);
                 const listEl = document.getElementById('tier' + t + 'List');
                 listEl.innerHTML = '';
-                listEl.style.backgroundColor = getTierColor(t); // optional: color code columns
+                listEl.style.backgroundColor = getTierColor(t);
 
-                // Filter and sort words for this tier
                 const tierWords = words.filter(w => w.tier === t)
-                                    .sort((a,b) => (a.english > b.english ? 1 : -1));
+                                    .sort((a,b) => a.english.localeCompare(b.english));
 
-                // Render each word
                 tierWords.forEach(wordObj => {
                     const div = document.createElement('div');
                     div.style.display = 'flex';
@@ -803,7 +735,6 @@
                     div.style.cursor = 'pointer';
                     div.setAttribute('draggable', 'true');
 
-                    // DELETE BUTTON on LEFT
                     const delBtn = document.createElement('span');
                     delBtn.textContent = '✖';
                     delBtn.style.color = '#900';
@@ -819,15 +750,13 @@
                     };
                     div.appendChild(delBtn);
 
-                    // WORD TEXT
                     const wordText = document.createElement('span');
                     wordText.textContent = wordObj.english + ',' + wordObj.german;
                     wordText.style.flex = '1';
                     div.appendChild(wordText);
 
-                    // Double-click to edit
                     div.ondblclick = () => {
-                        const newText = prompt('Edit word (format: word,translation):', div.textContent.replace('✖','').trim());
+                        const newText = prompt('Edit word (format: word,translation):', wordObj.english + ',' + wordObj.german);
                         if (newText) {
                             const parts = newText.split(',');
                             if (parts.length >= 2) {
@@ -841,7 +770,6 @@
                         }
                     };
 
-                    // Drag-and-drop
                     div.ondragstart = (e) => {
                         e.dataTransfer.setData('text/plain', words.indexOf(wordObj));
                     };
@@ -849,14 +777,12 @@
                     listEl.appendChild(div);
                 });
 
-                // Allow dropping on the entire tier column
                 columnEl.ondragover = (e) => {
                     e.preventDefault();
                     columnEl.style.border = '3px solid #333';
                 };
 
                 columnEl.ondragleave = (e) => {
-                    // Only remove border if we're actually leaving the column, not just entering a child
                     if (e.target === columnEl) {
                         columnEl.style.border = '';
                     }
@@ -877,7 +803,6 @@
             }
         }
 
-        // Helper function to get tier background colors
         function getTierColor(tier) {
             const colors = {
                 1: '#e3f2fd',
@@ -889,7 +814,39 @@
             return colors[tier] || '#fff';
         }
 
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                const sessionScreen = document.getElementById('sessionScreen');
+                const isSessionActive = !sessionScreen.classList.contains('hidden');
+                
+                if (!isSessionActive) return;
+                
+                const revealBtn = document.getElementById('revealBtn');
+                const answerBtns = document.getElementById('answerBtns');
+                
+                // Down arrow to reveal
+                if (e.key === 'ArrowDown' && !revealBtn.classList.contains('hidden')) {
+                    e.preventDefault();
+                    revealAnswer();
+                }
+                
+                // Left arrow for correct
+                if (e.key === 'ArrowLeft' && !answerBtns.classList.contains('hidden')) {
+                    e.preventDefault();
+                    markCorrect();
+                }
+                
+                // Right arrow for wrong
+                if (e.key === 'ArrowRight' && !answerBtns.classList.contains('hidden')) {
+                    e.preventDefault();
+                    markWrong();
+                }
+            });
+        }
+
         initializeApp();
+        setupKeyboardShortcuts();
     </script>
 </body>
-</html>                
+</html>
