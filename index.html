@@ -307,6 +307,16 @@
                 <button class="btn-danger" onclick="markWrong()">✗ Wrong →</button>
             </div>
         </div>
+
+        <div id="summaryScreen" class="hidden">
+            <h1>Session Complete!</h1>
+            
+            <div id="summaryContent" style="max-height: 500px; overflow-y: auto; margin: 20px 0;">
+                <!-- Summary will be populated here -->
+            </div>
+            
+            <button class="btn-primary" onclick="returnToMenu()">Return to Menu</button>
+        </div>
     </div>
 
     <div id="modal" class="modal hidden"></div>
@@ -345,6 +355,7 @@
         let currentCard = null;
         let sessionTierCounts = {1: 0, 2: 0, 3: 0, 4: 0};
         let leftLanguage, rightLanguage;
+        let sessionStats = [];
 
         function loadLanguageLabels() {
             const leftInput = document.getElementById('leftLang');
@@ -475,6 +486,7 @@
 
             sessionWords = [];
             sessionTierCounts = {1: 0, 2: 0, 3: 0, 4: 0};
+            sessionStats = [];
 
             function addWords(targetTier, count, backfillOrder) {
                 let added = 0;
@@ -482,12 +494,17 @@
                 for (let tier of tiers) {
                     while (added < count && available[tier].length > 0) {
                         const word = available[tier].shift();
-                        sessionWords.push({
+                        const sessionWord = {
                             ...word,
                             enToDeStreak: 0,
                             deToEnStreak: 0,
-                            hadMistakeThisSession: false
-                        });
+                            hadMistakeThisSession: false,
+                            startingTier: word.tier,
+                            enToDeErrors: 0,
+                            deToEnErrors: 0
+                        };
+                        sessionWords.push(sessionWord);
+                        sessionStats.push(sessionWord);
                         sessionTierCounts[word.tier]++;
                         added++;
                     }
@@ -574,10 +591,13 @@
 
         function markWrong() {
             const word = currentCard.word;
-            if (currentCard.direction === 'enToDe') {
+            const direction = currentCard.direction;
+            if (direction === 'enToDe') {
                 word.enToDeStreak = 0;
+                word.enToDeErrors++;
             } else {
                 word.deToEnStreak = 0;
+                word.deToEnErrors++;
             }
             word.hadMistakeThisSession = true;
             nextCard();
@@ -622,10 +642,69 @@
                     word.tier = 2;
                     word.consecutivePerfectSessions = 0;
                 }
+                
+                // Update session stats with final tier
+                sessionWord.endingTier = word.tier;
+                sessionWord.currentStreak = word.consecutivePerfectSessions;
             });
 
             saveData();
+            showSummary();
+        }
+
+        function showSummary() {
             document.getElementById('sessionScreen').classList.add('hidden');
+            document.getElementById('summaryScreen').classList.remove('hidden');
+            
+            let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 10px;">';
+            
+            sessionStats.forEach(word => {
+                const tierChange = word.startingTier !== word.endingTier;
+                const hasErrors = word.enToDeErrors > 0 || word.deToEnErrors > 0;
+                
+                html += '<div style="border-bottom: 1px solid #ddd; padding: 10px 0; margin: 5px 0;">';
+                html += '<div style="font-weight: bold; font-size: 16px;">' + word.english + ' / ' + word.german + '</div>';
+                
+                // Starting and ending tier
+                html += '<div style="margin: 5px 0;">';
+                html += '<span class="tier t' + word.startingTier + '">Started: T' + word.startingTier + '</span> ';
+                if (tierChange) {
+                    html += '<span style="color: #666;">→</span> ';
+                    html += '<span class="tier t' + word.endingTier + '">Ended: T' + word.endingTier + '</span>';
+                } else {
+                    html += '<span style="color: #666;">(No tier change)</span>';
+                }
+                html += '</div>';
+                
+                // Error count
+                html += '<div style="margin: 5px 0; font-size: 14px;">';
+                if (hasErrors) {
+                    if (word.enToDeErrors > 0) {
+                        html += '<span style="color: #f44336;">✗ ' + leftLanguage + '→' + rightLanguage + ': ' + word.enToDeErrors + ' error(s)</span> ';
+                    }
+                    if (word.deToEnErrors > 0) {
+                        html += '<span style="color: #f44336;">✗ ' + rightLanguage + '→' + leftLanguage + ': ' + word.deToEnErrors + ' error(s)</span>';
+                    }
+                } else {
+                    html += '<span style="color: #4caf50;">✓ Perfect (no errors)</span>';
+                }
+                html += '</div>';
+                
+                // Current streak
+                html += '<div style="margin: 5px 0; font-size: 14px; color: #666;">';
+                html += 'Current streak: ' + word.currentStreak + ' session(s)';
+                html += '</div>';
+                
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            
+            document.getElementById('summaryContent').innerHTML = html;
+        }
+
+        function returnToMenu() {
+            document.getElementById('summaryScreen').classList.add('hidden');
             document.getElementById('menuScreen').classList.remove('hidden');
             updateStats();
         }
